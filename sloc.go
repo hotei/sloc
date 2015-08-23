@@ -1,62 +1,51 @@
+// sloc.go (c) 2011, 2012 Scott Lawrence <bytbox@gmail.com>
+//
+// Portions (c) 2015 David Rook <hotei@gmail.com> use git blame for details
+//
+//	Changes by David Rook <hotei@gmail.com>
+//	Version bumped to 0.1.3
+//	Add a few more markdown .exts
+//	Re-order as types/const/vars (personal preference only)
+//	Added some documentation here and there.
+//	Added MANY other languages (use -version -verbose to see the list)
+//	Added -md flag (enclose output in ``` ... ``` )
+//	change some names to something I like better
+//		i --> fileinfo
+//		n --> input directory path in main() and add() --> pathName?
+//	Use mdr.GetArgs() so we can feed it with "find ."
+//	Added -stdin flag to turn off local "." default
+//	Added Spinner while working since large trees can take a while
+//	Changed return method in add to allow printing errors if we get one.
+//	Ignore backup files (*~) earlier
+//
+// ToDo
+//
+//
 package main
 
 import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"github.com/hotei/mdr"
 	"io/ioutil"
 	"os"
 	"path"
 	"runtime/pprof"
 	"sort"
+	"strings"
 	"text/tabwriter"
 )
 
-const VERSION = `0.1.1`
+const VERSION = "sloc version 0.1.3 (c) Scott Lawrence, portions (c) David Rook"
 
-var languages = []Language{
-	Language{"Thrift", mExt(".thrift"), cComments},
-
-	Language{"C", mExt(".c", ".h"), cComments},
-	Language{"C++", mExt(".cc", ".cpp", ".cxx", ".hh", ".hpp", ".hxx"), cComments},
-	Language{"Go", mExt(".go"), cComments},
-	Language{"Scala", mExt(".scala"), cComments},
-	Language{"Java", mExt(".java"), cComments},
-
-	Language{"YACC", mExt(".y"), cComments},
-	Language{"Lex", mExt(".l"), cComments},
-
-	Language{"SQL", mExt(".sql"), sqlComments},
-
-	Language{"Haskell", mExt(".hs", ".lhs"), hsComments},
-
-	Language{"Perl", mExt(".pl", ".pm"), shComments},
-	Language{"PHP", mExt(".php"), cComments},
-
-	Language{"Shell", mExt(".sh"), shComments},
-	Language{"Bash", mExt(".bash"), shComments},
-
-	Language{"Ruby", mExt(".rb"), shComments},
-	Language{"Python", mExt(".py"), pyComments},
-	Language{"Assembly", mExt(".asm", ".s"), semiComments},
-	Language{"Lisp", mExt(".lsp", ".lisp"), semiComments},
-	Language{"Scheme", mExt(".scm", ".scheme"), semiComments},
-
-	Language{"Make", mName("makefile", "Makefile", "MAKEFILE"), shComments},
-	Language{"CMake", mName("CMakeLists.txt"), shComments},
-	Language{"Jam", mName("Jamfile", "Jamrules"), shComments},
-
-	Language{"Markdown", mExt(".md"), noComments},
-
-	Language{"HAML", mExt(".haml"), noComments},
-	Language{"SASS", mExt(".sass"), cssComments},
-	Language{"SCSS", mExt(".scss"), cssComments},
-
-	Language{"HTML", mExt(".htm", ".html", ".xhtml"), xmlComments},
-	Language{"XML", mExt(".xml"), xmlComments},
-	Language{"CSS", mExt(".css"), cssComments},
-	Language{"JavaScript", mExt(".js"), cComments},
+/*
+type Language struct {
+	Namer
+	Matcher
+	Commenter
 }
+*/
 
 type Commenter struct {
 	LineComment  string
@@ -65,22 +54,87 @@ type Commenter struct {
 	Nesting      bool
 }
 
+type Namer string
+
+type Matcher func(string) bool
+
+type Stats struct {
+	FileCount    int
+	TotalLines   int
+	CodeLines    int
+	BlankLines   int
+	CommentLines int
+}
+
+type LData []LResult
+
+type LResult struct {
+	Name         string
+	FileCount    int
+	CodeLines    int
+	CommentLines int
+	BlankLines   int
+	TotalLines   int
+}
+
+var info = map[string]*Stats{}
+
+var files []string
+
 var (
-	noComments = Commenter{"\000", "\000", "\000", false}
-	xmlComments = Commenter{"\000", `<!--`, `-->`, false}
-	cComments  = Commenter{`//`, `/*`, `*/`, false}
-	cssComments  = Commenter{"\000", `/*`, `*/`, false}
-	shComments = Commenter{`#`, "\000", "\000", false}
-	semiComments = Commenter{`;`, "\000", "\000", false}
-	hsComments  = Commenter{`--`, `{-`, `-}`, true}
-	sqlComments  = Commenter{`--`, "\000", "\000", false}
-	pyComments = Commenter{`#`, `"""`, `"""`, false}
+	flagCpuProfile string
+	flagMd         bool
+	flagNoOp       bool
+	flagStdin      bool
+	flagUseJson    bool
+	flagVerbose    bool
+	flagVersion    bool
 )
 
-type Language struct {
-	Namer
-	Matcher
-	Commenter
+// changed flags so we can have easier way to alias flags like -V and -version
+func init() {
+	flag.StringVar(&flagCpuProfile, "cpuprofile", "", "write cpu profile to file")
+	flag.BoolVar(&flagUseJson, "json", false, "JSON-format output")
+	flag.BoolVar(&flagVersion, "V", false, "display version info and exit")
+	flag.BoolVar(&flagVersion, "version", false, "display version info and exit")
+	flag.BoolVar(&flagVerbose, "v", false, "user sees more messages")
+	flag.BoolVar(&flagVerbose, "verbose", false, "user sees more messages")
+	flag.BoolVar(&flagNoOp, "n", false, "don't do count, just list files we look at")
+	flag.BoolVar(&flagMd, "md", false, "output is markdown friendly (quoted)")
+	flag.BoolVar(&flagStdin, "stdin", false, "read from Stdin, no default (.) arg")
+}
+
+func flagSetup() {
+	// check flags for interactions/sanity
+	if flagVerbose {
+		Verbose = VerboseType(true)
+	}
+	Verbose.Printf("Verbose is set true\n")
+	if flagVersion {
+		fmt.Printf("Version %s\n", VERSION)
+		if flagVerbose {
+			for _, lang := range languages {
+				fmt.Printf("%s \n", lang.Namer)
+			}
+		}
+		usage()
+		os.Exit(0)
+	}
+	// fmt.Printf("\n")  // bug or feature
+}
+
+func usage() {
+	s := `usage:
+	sloc 
+	sloc [directory...]
+		-cpuprofile="path"			write cpu profile to file
+		-V                           print version info and exit
+		-version                     print version info and exit
+		-v                           use extra output detail
+		-verbose                     use extra output detail
+	`
+	fmt.Printf("%s\n", s)
+	os.Exit(0)
 }
 
 // TODO work properly with unicode
@@ -102,7 +156,9 @@ func (l Language) Update(c []byte, s *Stats) {
 				inLComment = true
 				lp = 0
 			}
-		} else { lp = 0 }
+		} else {
+			lp = 0
+		}
 		if !inLComment && b == sc[sp] {
 			sp++
 			if sp == len(sc) {
@@ -112,14 +168,20 @@ func (l Language) Update(c []byte, s *Stats) {
 				}
 				sp = 0
 			}
-		} else { sp = 0 }
+		} else {
+			sp = 0
+		}
 		if !inLComment && inComment > 0 && b == ec[ep] {
 			ep++
 			if ep == len(ec) {
-				if inComment > 0 { inComment-- }
+				if inComment > 0 {
+					inComment--
+				}
 				ep = 0
 			}
-		} else { ep = 0 }
+		} else {
+			ep = 0
+		}
 
 		if b != byte(' ') && b != byte('\t') && b != byte('\n') {
 			blank = false
@@ -135,25 +197,23 @@ func (l Language) Update(c []byte, s *Stats) {
 				s.CommentLines++
 			} else if blank {
 				s.BlankLines++
-			} else { s.CodeLines++ }
+			} else {
+				s.CodeLines++
+			}
 			blank = true
 			continue
 		}
 	}
 }
 
-type Namer string
-
 func (l Namer) Name() string { return string(l) }
-
-type Matcher func(string) bool
 
 func (m Matcher) Match(fname string) bool { return m(fname) }
 
 func mExt(exts ...string) Matcher {
 	return func(fname string) bool {
 		for _, ext := range exts {
-			if ext == path.Ext(fname) {
+			if ext == strings.ToLower(path.Ext(fname)) {
 				return true
 			}
 		}
@@ -172,73 +232,78 @@ func mName(names ...string) Matcher {
 	}
 }
 
-type Stats struct {
-	FileCount    int
-	TotalLines   int
-	CodeLines    int
-	BlankLines   int
-	CommentLines int
-}
-
-var info = map[string]*Stats{}
-
 func handleFile(fname string) {
+	mdr.Spinner()
 	var l Language
-	ok := false
+	found := false
 	for _, lang := range languages {
 		if lang.Match(fname) {
-			ok = true
+			found = true
 			l = lang
 			break
 		}
 	}
-	if !ok {
+	if !found {
 		return // ignore this file
 	}
-	i, ok := info[l.Name()]
+
+	fileinfo, ok := info[l.Name()]
 	if !ok {
-		i = &Stats{}
-		info[l.Name()] = i
+		// language has no existing stat struct so make a new one
+		fileinfo = &Stats{}
+		info[l.Name()] = fileinfo
 	}
 	c, err := ioutil.ReadFile(fname)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "  ! %s\n", fname)
+		fmt.Fprintf(os.Stderr, "  !Err---> file %s is not readable err:%v\n",
+			fname, err)
 		return
 	}
-	l.Update(c, i)
+	l.Update(c, fileinfo)
 }
 
-var files []string
-
-func add(n string) {
-	fi, err := os.Stat(n)
+// add a path to the ones we want to inspect later
+//	side effect is to append to files
+//	note this is a recursive function
+//	? better served by path/filepath/walk?
+func add(pathName string) {
+	mdr.Spinner()
+	// Verbose.Printf("pathName %s tail %c\n", pathName, pathName[len(pathName)-1])
+	// short-circuit if it's a backup file
+	if pathName[len(pathName)-1] == '~' {
+		return
+	}
+	// short-circuit known tarpits like ".git" and probably ".gvfs"
+	// need a []string to keep list of these like in mdserver
+	fi, err := os.Stat(pathName)
 	if err != nil {
-		goto invalid
+		fmt.Fprintf(os.Stderr, "  !Err---> cant get info for path %s : %v\n",
+			pathName, err)
+		return
 	}
 	if fi.IsDir() {
-		fs, err := ioutil.ReadDir(n)
+		fs, err := ioutil.ReadDir(pathName)
 		if err != nil {
-			goto invalid
+			fmt.Fprintf(os.Stderr, "  !Err---> cant get read %s : %v\n",
+				pathName, err)
+			return
 		}
 		for _, f := range fs {
-			if f.Name()[0] != '.' {
-				add(path.Join(n, f.Name()))
+			if f.Name()[0] != '.' { // ignore self, parent and hidden files
+				add(path.Join(pathName, f.Name())) // recursively do this
 			}
 		}
 		return
 	}
+	// if its a regular file then add it to the files to process list
 	if fi.Mode()&os.ModeType == 0 {
-		files = append(files, n)
+		files = append(files, pathName)
 		return
 	}
-
+	// if it's not a regular file ignore it but print the mode?  How does this  help?
 	println(fi.Mode())
-
-invalid:
-	fmt.Fprintf(os.Stderr, "  ! %s\n", n)
+	fmt.Fprintf(os.Stderr, "  !Err---> path %s is not a regular file\n", pathName)
 }
-
-type LData []LResult
 
 func (d LData) Len() int { return len(d) }
 
@@ -253,15 +318,6 @@ func (d LData) Swap(i, j int) {
 	d[i], d[j] = d[j], d[i]
 }
 
-type LResult struct {
-	Name string
-	FileCount int
-	CodeLines int
-	CommentLines int
-	BlankLines int
-	TotalLines int
-}
-
 func (r *LResult) Add(a LResult) {
 	r.FileCount += a.FileCount
 	r.CodeLines += a.CodeLines
@@ -272,7 +328,9 @@ func (r *LResult) Add(a LResult) {
 
 func printJSON() {
 	bs, err := json.MarshalIndent(info, "", "  ")
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(string(bs))
 }
 
@@ -308,24 +366,17 @@ func printInfo() {
 			i.BlankLines,
 			i.TotalLines)
 	}
-
 	w.Flush()
 }
 
-var (
-	cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
-	useJson = flag.Bool("json", false, "JSON-format output")
-	version = flag.Bool("V", false, "display version info and exit")
-)
-
+//
 func main() {
+	var args []string
 	flag.Parse()
-	if *version {
-		fmt.Printf("sloc %s\n", VERSION)
-		return
-	}
-	if *cpuprofile != "" {
-		f, err := os.Create(*cpuprofile)
+	flagSetup()
+	// note - this must stay in main() so profile data is flushed at close
+	if flagCpuProfile != "" {
+		f, err := os.Create(flagCpuProfile)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "error: %s\n", err.Error())
 			return
@@ -333,23 +384,43 @@ func main() {
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
-
-	args := flag.Args()
-	if len(args) == 0 {
-		args = append(args, `.`)
+	if flagStdin {
+		args = mdr.GetAllArgs()
+	} else {
+		args = flag.Args()
+		if len(args) == 0 {
+			args = append(args, `.`)
+		}
+	}
+	if flagMd {
+		fmt.Printf("```\n")
+		fmt.Printf("SLOC output\n\n")
+	}
+	for _, filePathName := range args {
+		add(filePathName)
 	}
 
-	for _, n := range args {
-		add(n)
+	if Verbose {
+		for i := 0; i < len(files); i++ {
+			fmt.Printf("File [%3d] %s\n", i+1, files[i])
+		}
+	}
+	if flagNoOp {
+		fmt.Printf("files[] has %d entries\n", len(files))
+		fmt.Println("-n flag given - exiting")
+		os.Exit(0)
 	}
 
 	for _, f := range files {
 		handleFile(f)
 	}
 
-	if *useJson {
+	if flagUseJson {
 		printJSON()
 	} else {
 		printInfo()
+	}
+	if flagMd {
+		fmt.Printf("```\n")
 	}
 }
