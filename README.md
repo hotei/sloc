@@ -6,7 +6,7 @@ sloc.go (c) 2011, 2012 Scott Lawrence <bytbox@gmail.com>
 
 Portions (c) 2015 David Rook <hotei@gmail.com> use git blame for details
 
-	Changes by David Rook <hotei@gmail.com>
+	Changes by David Rook <hotei1352@gmail.com>
 	Version bumped to 0.1.3
 	Add a few more markdown .exts
 	Re-order as types/const/vars (personal preference only)
