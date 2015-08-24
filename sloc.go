@@ -17,6 +17,7 @@
 //	Added Spinner while working since large trees can take a while
 //	Changed return method in add to allow printing errors if we get one.
 //	Ignore backup files (*~) earlier
+//	Print Percent of code lines each language comprises
 //
 // ToDo
 //
@@ -115,8 +116,8 @@ func flagSetup() {
 	if flagVersion {
 		fmt.Printf("Version %s\n", VERSION)
 		if flagVerbose {
-			for _, lang := range languages {
-				fmt.Printf("%s \n", lang.Namer)
+			for ndx, lang := range languages {
+				fmt.Printf("[%3d] %s \n", ndx+1, lang.Namer)
 			}
 		}
 		usage()
@@ -129,7 +130,7 @@ func usage() {
 	s := `usage:
 	sloc 
 	sloc [directory...]
-		-cpuprofile="path"			write cpu profile to file
+		-cpuprofile="path"           write cpu profile to file
 		-V                           print version info and exit
 		-version                     print version info and exit
 		-v                           use extra output detail
@@ -337,19 +338,19 @@ func printJSON() {
 }
 
 func printInfo() {
-	w := tabwriter.NewWriter(os.Stdout, 2, 8, 2, ' ', tabwriter.AlignRight)
-	fmt.Fprintln(w, "Language\tFiles\tCode\tComment\tBlank\tTotal\t")
+	w := tabwriter.NewWriter(os.Stdout, 2, 9, 2, ' ', tabwriter.AlignRight)
+	fmt.Fprintln(w, "Languages\tFiles\tCode\tComment\tBlank\tTotal\tCodeLns\t")
 	d := LData([]LResult{})
 	total := &LResult{}
 	total.Name = "Total"
-	for n, i := range info {
+	for n, ix := range info {
 		r := LResult{
 			n,
-			i.FileCount,
-			i.CodeLines,
-			i.CommentLines,
-			i.BlankLines,
-			i.TotalLines,
+			ix.FileCount,
+			ix.CodeLines,
+			ix.CommentLines,
+			ix.BlankLines,
+			ix.TotalLines,
 		}
 		d = append(d, r)
 		total.Add(r)
@@ -357,16 +358,20 @@ func printInfo() {
 	d = append(d, *total)
 	sort.Sort(d)
 	//d[0].Name = "Total"
-	for _, i := range d {
-		fmt.Fprintf(
-			w,
-			"%s\t%d\t%d\t%d\t%d\t%d\t\n",
-			i.Name,
-			i.FileCount,
-			i.CodeLines,
-			i.CommentLines,
-			i.BlankLines,
-			i.TotalLines)
+	//fmt.Printf("Total %v\n", d[0])
+	for _, ix := range d {
+		pct := 0.0
+		if d[0].TotalLines > 0 {
+			pct = (float64(ix.TotalLines) * 100.0) / float64(d[0].TotalLines)
+		}
+		fmt.Fprintf(w, "%s\t%d\t%d\t%d\t%d\t%d\t%4.1f%%\t\n",
+			ix.Name,
+			ix.FileCount,
+			ix.CodeLines,
+			ix.CommentLines,
+			ix.BlankLines,
+			ix.TotalLines,
+			pct)
 	}
 	w.Flush()
 }

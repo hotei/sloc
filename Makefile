@@ -15,8 +15,8 @@ install:
 	go tool vet -shadow .
 	gofmt -w *.go
 # pick install for packages, cp for programs (or dont copy if you wish)
-	go install
-#	cp $(PROG) $(HOME)/bin
+#	go install
+	cp $(PROG) $(HOME)/bin
 
 # note that godepgraph can be used to derive .travis.yml install: section
 docs:
@@ -25,7 +25,11 @@ docs:
 	deadcode -md >> $(DOCOUT)
 	sloc -md >> $(DOCOUT)
 	cp README-$(PROG).md README.md
+	echo "\`\`\`" >> $(DOCOUT)
+	echo built with go version = `go version` >> $(DOCOUT)
+	echo "\`\`\`" >> $(DOCOUT)
 	cat $(DOCOUT) >> README.md
+
 neat:
 	go fmt ./...
 

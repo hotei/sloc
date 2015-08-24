@@ -1,72 +1,46 @@
 <center>
-# ProgRAM
+# sloc - Source Lines Of Code
 </center>
 
-NOTE: Use Search&Replace to change ProgRAM to the new programs name.
-
-The godoc button/link that follows is for ansiterm, you must replace the ansiterm
-referece with ProGRAM once godoc.org has picked it up from github.com. This may
-require godoc.org to be "prompted" to do same.
-
 <h3>   
-<a href="http://godoc.org/github.com/hotei/ansiterm">
-<img src="https://godoc.org/github.com/hotei/ansiterm?status.png" alt="GoDoc"/>
+<a href="http://godoc.org/github.com/hotei/sloc">
+<img src="https://godoc.org/github.com/hotei/sloc?status.png" alt="GoDoc"/>
 </a>
 </h3>
+<h2> Table of Contents</h2>
 
-Travis tags are good but require registration at http://travis-ci.org and then
-a bit of setup to put in a tarvis.yaml file.  See their homepage 
-http://godoc.org and http://docs.travis-ci.com/user/languages/go/ for specifics.
+* <a href="#Sample Output">Sample Output</a>
+* <a href="#Why should I use it">Why should I use it</a>
+* <a href="#Installation">Installation</a>
+* <a href="#Usage">Usage</a>
+* <a href="#Change Log">Change Log</a>
+* <a href="#References">References</a>
+* <a href="#Disclaimer">Disclaimer</a>
+* <a href="#Licenses">Licenses</a>
+* <a href="#autogen">local GODOC, dependency graph, deadcode, sloc</a>
 
-<!---
-<a href="http://travis-ci.org/hotei/ansiterm">
-<img src="https://secure.travis-ci.org/hotei/ansiterm.png" alt="Build Status" /></a>
---->
+------
 
-This document "README-ProgRAM.md" is (c) 2015 David Rook. 
+<a href="http://travis-ci.org/hotei/sloc">
+<img src="https://secure.travis-ci.org/hotei/sloc.png" alt="Build Status" /></a>Travis Status<br>
 
-Note that it may have (possibly many?) more 
-headings than necessary, as ideas were borrowed from multiple sources. Normally 
-this is the first portion of README.md, where additional parts are added from
-one or more of:
-```
-godoc2md (by Dave Cheny)
-godepgraph (by Aram Hăvărneanu)
-deadcode (by Remy Oudompheng)
-```
-
-Finally a tag is added for which compiler version was in vogue when the docs were created.
-That MIGHT not be the same one used to actually generate the code as they can
-get out of sync for various reasons.  This can be fixed, but a full retrofit will take
-a while.
-
-
-note - to embed an image inline it must be in same folder as the md file, or href'd to an
-active server where the file is available. In our case the server is a go program
-__mdserver__ running on 8281 on our local hardware, not available over the net.
-
-
-http://127.0.0.1:8281/images --> ~/Desktop/GO/images
-
-![Hotei](http://127.0.0.1:8281/images/chip.jpg "Hotei")	
-
-for a link to an image just type the href, as : http://127.0.0.1:8281/images/Rex.png
-
-ProgRAM is (c) 2015 David Rook - all rights reserved. The program
-and related files in this repository are released under BSD 2-Clause License.
-License details are at the end of this document. Bugs/issues can be reported on github.
-Comments can be sent to <hotei1352@gmail.com>. "Thank you"s, constructive 
-criticism and job offers are always welcome.  If you are so inclined you may
-donate money to help continue the project by sending PayPal contributions to
-my wife at diane@celticpapers.com. 
-
-### Overview
-# SLOC - Source Lines Of Code
+This document "README-sloc.md" is (c) 2015 David Rook.   
 
 `sloc` is a simple, do-one-thing-well program to calculate code statistics: the
 number of lines in a project, and how much of that is code versus comment.
 
-    $ sloc ~/misc/opt/go
+`sloc` cannot understand gitignore or hgignore, nor can it distinguish between
+"real" source and auto-generated files, so for best results, run it on a fresh
+repository with no compilation done.
+
+You can generate JSON output with the `-json` flag, if that's easy to parse in
+the programming/scripting language of your choice.
+
+<a name="Sample Output">
+### Sample Output
+
+```
+ $ sloc ~/misc/opt/go
         Language  Files    Code  Comment  Blank   Total
            Total   2808  512357    87177  67791  667325
               Go   2048  295054    62020  37973  395047
@@ -82,145 +56,69 @@ number of lines in a project, and how much of that is code versus comment.
             Perl      9     854      159    135    1148
             Bash     13     483      151    122     756
             Make     33     174      106     87     367
-
-`sloc` cannot understand gitignore or hgignore, nor can it distinguish between
-"real" source and auto-generated files, so for best results, run it on a fresh
-repository with no compilation done.
-
-You can generate JSON output with the `-json` flag, if that's easy to parse in
-the programming/scripting language of your choice.
-
-### Description
-
-### What Is It?
-
+```
+<a name="Why should I use it">
 ### Why should I use it?
 
-ProgRAM is a go program to solve problems
+sloc can provide a picture of how a project was developed.  This can be critical
+if you need to provide support for every language that's in the project's list.
 
-### How does it work?
-
-### <font color=red> >>> Please Read This First <<< </font>
-
-### Background Info on the problem
-
+<a name="Installation">
 ### Installation
 
 If you have a working go installation on a Unix-like OS:
 
-> ```go get github.com/hotei/ProgRAM```
+> ```go get github.com/hotei/sloc```
 
 If go is not yet installed:
 ```
 cd DestinationDirectory
-git clone https://github.com/hotei/ProgRAM.git
+git clone https://github.com/hotei/sloc.git
 ```
 
 If you don't plan to instal go you can still download the git repository as
 a zipfile and extract it to examine the contents.  However, if you just want a quick
 look the best way is probably to inspect the GoDoc.Org version at this link:
-<a href="http://godoc.org/github.com/hotei/ansiterm">
-<img src="https://godoc.org/github.com/hotei/ansiterm?status.png" alt="GoDoc"/>
+<a href="http://godoc.org/github.com/hotei/sloc">
+<img src="https://godoc.org/github.com/hotei/sloc?status.png" alt="GoDoc"/>
 </a>
 
-### Prerequisites
-
-### Configuration
-
-### Features
-
+<a name="Usage">
 ### Usage (incl option flags)
 
-### Sample Output
-
-### ScreenDumps
-
-### Tests
-
-### Example Programs
-
-### Benchmarks
-
-### Notes
-
-### To do
-
-NOTE:  "higher" relative priority is at top of list
-
-1.  Added as needed (none active at the moment)
-
-### Limitations
-
-### Package contents
-
-* Programs included
-* Data files required
-* Documentation provided
-
-### Bugs
-
-1.  Added as needed (none active at the moment)
-`
-
-### Development Environment
-	Mint 17.1 Linux on i7/2500 mhz 8 'core' (4+4HT) HP Envy Laptop
-	X11/R6
-	gnu g++ compiler gcc version 4.8.2 (Ubuntu 4.8.2-19ubuntu1)
-	go 1.5rc1
-
-
-### Tests
-
 ```
-Testing generally looks like this:
+sloc                                | look in current directory for files to count
+sloc $HOME/src                      | user's source directory
+sloc -version -verbose              | list extra info, incl. languages recognized
+find / -type f | sloc -stdin        | feed it files on stdin
 
-
-go test  // runs all the tests
-
-go test -run=0001    // runs Test_0001 or you can use re2 ".*" for all
-
-if all tests pass then go will allow you to run benchmarks
-
-go test -test.bench=".*" to run all benchmarks
+options:
+    - stdin                         | args will be taken from stdin, no local "." default
+    - n                             | don't do count, just list files that would be counted
+    - V or -version                 | print version and quit
+    - v or -verbose                 | use more extensive user messages
+    - md                            | make output markdown friendly with ``` quotes
+    - json                          | output results in json format
+    - cpuprofile=fname              | save cpu profile to fname
 ```
------
-
-### Profiling
-
-Depending on how long the program is expected to run a profile may be in order.  
-
-```
-go tool pprof ./ProgRAM logit.prof
-
-(then type help for options)
-
-`web` is usually interesting but you may need to install Graphviz to use it.
-$sudo apt-get install Graphviz
-
-`svg` is useful with eog or chrome as the viewer.
-
-```
-
 	
+<a name="Change Log">
 ### Change Log
 
-* 2015-xx-xx rebuilt with go 1.5rc1
-* 2015-xx-01 rebuilt with go 1.4.2
-* 2014-xx-xx first commit to github.com
-* 2009-11-07 translated ProgRAM to go
-* 1969-09-30 wrote ProgRAM in Fortran II
+* 2015-08-20 rebuilt with go 1.5
 
+<a name="References">
 ### References
 
 * [go language reference] [1] 
 * [go standard library package docs] [2]
-* [Source for ProgRAM on github] [3]
+* [Source for sloc on github] [3]
 * [Go projects list(s)] [7]
 * [Excellent godoc howto by Nate Finch] [8]
 
 [1]: http://golang.org/ref/spec/ "go reference spec"
 [2]: http://golang.org/pkg/ "go package docs"
-[3]: http://github.com/hotei/ProgRAM "github.com/hotei/ProgRAM"
+[3]: http://github.com/hotei/sloc "github.com/hotei/sloc"
 [4]: http://golang.org/doc/go1compat.html "Go 1.x API contract"
 [5]: http://blog.golang.org/2011/06/profiling-go-programs.html "Profiling go code"
 [6]: http://golang.org/doc/articles/godoc_documenting_go_code.html "GoDoc HowTo"
@@ -230,14 +128,42 @@ $sudo apt-get install Graphviz
 Comments can be sent to David Rook  <hotei1352@gmail.com>  Any issues/bugs
 can be mentioned in email or filed on github.
 
+<a name="Disclaimer">
 ### Disclaimer
 Any trademarks mentioned herein are the property of their respective owners.
 
-### License
+<a name="Licenses">
+### Licenses
+The original code contained the following license:
 
-The 'ProgRAM' go program/package and demo programs are distributed under the Simplified BSD License:
+> Copyright (c) 2011, 2012 Scott Lawrence <bytbox@gmail.com>
+> 
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
 
-> Copyright (c) 2015 David Rook. All rights reserved.
+> The above copyright notice and this permission notice shall be included in
+> all copies or substantial portions of the Software.
+
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+> THE SOFTWARE.
+
+-----
+
+> Those portions of the 'sloc' go program/package and demo programs written by
+> David Rook are distributed under the Simplified BSD License.  You can identify
+> those portion using git blame if so inclined.
+> 
+>
+> Portions copyright (c) 2015 David Rook. All rights reserved.
 > 
 > Redistribution and use in source and binary forms, with or without modification, are
 > permitted provided that the following conditions are met:
@@ -260,7 +186,7 @@ The 'ProgRAM' go program/package and demo programs are distributed under the Sim
 > ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ----
-
+<a name="autogen">
 <center>
 # Automatically Generated Documentation Follows
 </center>

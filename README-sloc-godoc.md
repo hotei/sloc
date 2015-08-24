@@ -27,6 +27,9 @@ Portions (c) 2015 David Rook <hotei@gmail.com> use git blame for details
 ToDo
 
 
+	Wouldn't hurt to add a few tests.
+
+
 
 
 
@@ -50,7 +53,6 @@ github.com/hotei/sloc imports
 	errors
 	flag
 	fmt
-	github.com/hotei/datatable
 	github.com/hotei/mdr
 	hash
 	hash/crc64
@@ -91,10 +93,13 @@ deadcode results:
 SLOC output
 
   Language  Files  Code  Comment  Blank  Total
-     Total     11   997      119    261   1377
-  Markdown      4   554        0    203    757
-        Go      3   394      111     46    551
-      Make      1    33        8      9     50
+     Total     11   946      121    173   1240
+  Markdown      4   500        0    114    614
+        Go      3   394      113     46    553
+      Make      1    36        8     10     54
       Text      1    16        0      3     19
     Pascal      2     0        0      0      0
+```
+```
+built with go version = go version go1.5 linux/amd64
 ```
