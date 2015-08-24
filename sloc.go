@@ -20,6 +20,7 @@
 //
 // ToDo
 //
+//	Wouldn't hurt to add a few tests.
 //
 package main
 
@@ -27,7 +28,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/hotei/mdr"
 	"io/ioutil"
 	"os"
 	"path"
@@ -35,6 +35,8 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
+	//
+	"github.com/hotei/mdr"
 )
 
 const VERSION = "sloc version 0.1.3 (c) Scott Lawrence, portions (c) David Rook"

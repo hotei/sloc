@@ -2,7 +2,7 @@
 
 package main
 
-// interesting that it's an untyped struct...
+// interesting that it's an untyped struct... don't see that very often
 type Language struct {
 	Namer
 	Matcher
