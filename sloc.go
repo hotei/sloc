@@ -18,6 +18,7 @@
 //	Changed return method in add to allow printing errors if we get one.
 //	Ignore backup files (*~) earlier
 //	Print Percent of code lines each language comprises
+//	Removed requirement that files be all lowercase to match
 //
 // ToDo
 //

@@ -13,6 +13,7 @@
 * <a href="#Why should I use it">Why should I use it</a>
 * <a href="#Installation">Installation</a>
 * <a href="#Usage">Usage</a>
+* <a href="#Limitations">Limitations</a>
 * <a href="#Change Log">Change Log</a>
 * <a href="#References">References</a>
 * <a href="#Disclaimer">Disclaimer</a>
@@ -26,36 +27,48 @@
 
 This document "README-sloc.md" is (c) 2015 David Rook.   
 
-`sloc` is a simple, do-one-thing-well program to calculate code statistics: the
-number of lines in a project, and how much of that is code versus comment.
-
-`sloc` cannot understand gitignore or hgignore, nor can it distinguish between
-"real" source and auto-generated files, so for best results, run it on a fresh
-repository with no compilation done.
-
-You can generate JSON output with the `-json` flag, if that's easy to parse in
-the programming/scripting language of your choice.
-
 <a name="Sample Output">
 ### Sample Output
-
 ```
- $ sloc ~/misc/opt/go
-        Language  Files    Code  Comment  Blank   Total
-           Total   2808  512357    87177  67791  667325
-              Go   2048  295054    62020  37973  395047
-               C    474  166702    22330  21849  210881
-            HTML     58   25627      183   4241   30051
-        Assembly    131    9974      161   1491   11626
-            YACC      6    5245      363    449    6057
-          Python      6    2940      789    495    4224
-      JavaScript      6    2526      496    585    3607
-             XML      9     974       15     90    1079
-           Shell      9     905      380    155    1440
-             CSS      6     899       24    119    1042
-            Perl      9     854      159    135    1148
-            Bash     13     483      151    122     756
-            Make     33     174      106     87     367
+SLOC output for $HOME/mdr/GO
+
+   Languages  Files     Code  Comment   Blank    Total  CodeLns
+       Total  19826  5079185   811107  480229  6370521   100.0%
+          Go  14134  3520492   534403  363020  4417915    69.3%
+           C    947   326381   146560   42495   515436     8.1%
+        Text    544   285006     1530   14595   301131     4.7%
+         PDF    123   241839    28012    2124   271975     4.3%
+        HTML    719   183067     2175   11670   196912     3.1%
+         SVG    132   134237        0      75   134312     2.1%
+         Rtf      2    61456        0       5    61461     1.0%
+    Assembly    402    57484     3591    6914    67989     1.1%
+         C++    575    54929    76486    5616   137031     2.2%
+    Markdown    678    54875        0   20165    75040     1.2%
+        JSON     89    38855        0      10    38865     0.6%
+         XML     97    24945      359     707    26011     0.4%
+        Java    194    20611    11006      32    31649     0.5%
+         CSS    114    18250      884    1929    21063     0.3%
+  JavaScript     91    16996     2618    3328    22942     0.4%
+        Conf     55     9797        0     586    10383     0.2%
+      Python     51     6360     1217    1269     8846     0.1%
+        Make    272     4052      735    1574     6361     0.1%
+        Rust     32     3206        0    1042     4248     0.1%
+        YACC      6     3066      193     315     3574     0.1%
+      Prolog    132     2120        0     566     2686     0.0%
+         PHP      2     2098        8     586     2692     0.0%
+       Shell    110     1812      634     422     2868     0.0%
+        Bash     31     1178      382     283     1843     0.0%
+         Lua     48     1172        0     186     1358     0.0%
+        TOML    159     1092        0     178     1270     0.0%
+        Perl     11      939      168     152     1259     0.0%
+      Pascal      4      874        0       0      874     0.0%
+        Tmpl     18      708        0     118      826     0.0%
+       CMake     14      402       76     112      590     0.0%
+        Ruby      6      284       54      70      408     0.0%
+        YAML     16      262        0      48      310     0.0%
+        Lisp     14      174       16      36      226     0.0%
+           D      3      153        0       0      153     0.0%
+         AWK      1       13        0       1       14     0.0%
 ```
 <a name="Why should I use it">
 ### Why should I use it?
@@ -78,9 +91,8 @@ git clone https://github.com/hotei/sloc.git
 
 If you don't plan to instal go you can still download the git repository as
 a zipfile and extract it to examine the contents.  However, if you just want a quick
-look the best way is probably to inspect the GoDoc.Org version at this link:
-<a href="http://godoc.org/github.com/hotei/sloc">
-<img src="https://godoc.org/github.com/hotei/sloc?status.png" alt="GoDoc"/>
+look the best way is probably to inspect the GoDoc.Org link above.
+
 </a>
 
 <a name="Usage">
@@ -101,11 +113,24 @@ options:
     - json                          | output results in json format
     - cpuprofile=fname              | save cpu profile to fname
 ```
-	
+
+<a name="Limitations">
+### Limitations
+
+* It's possible that extensions can be mis-appropriated.  One popular IDE uses
+.pro for config files.  That's also an extension indicating the Prolog language.
+There probably are other name collisions I'm not aware of.
+* The matching method is a little odd, as is the type Language struct. I 
+may tinker with that once I'm a little more comfortable with the code.  It runs
+fast enough now as it can process about a million lines per second. I'd like
+to do a few timing runs and maybe a profile since Scott put the hooks in there
+already.
+
 <a name="Change Log">
 ### Change Log
 
-* 2015-08-20 rebuilt with go 1.5
+* 2015-08-24 doc updates
+* 2015-08-23 forked project and rebuilt with go 1.5
 
 <a name="References">
 ### References
